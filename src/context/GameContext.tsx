@@ -1,12 +1,12 @@
 import { createContext, useContext, useReducer, useEffect, useCallback, useRef, useState, type ReactNode } from 'react';
-import type { GameState, GameAction, StoryEntry } from '../game/state';
+import type { GameState, GameAction, StoryEntry, CampaignRecord } from '../game/state';
 import { gameReducer, createInitialState } from '../game/state';
 import type { AIProvider } from '../ai/provider';
 import { ClaudeProvider } from '../ai/claude';
 import { OpenAIProvider } from '../ai/openai';
 import type { AppSettings } from '../utils/storage';
-import { loadSettings, saveSettings, saveGameState, loadGameState } from '../utils/storage';
-import { buildDMSystemPrompt, buildRollResultMessage } from '../ai/prompts';
+import { loadSettings, saveSettings, saveGameState, loadGameState, getRosterCharacter, addCampaignToRoster, addToRoster } from '../utils/storage';
+import { buildDMSystemPrompt, buildRollResultMessage, buildCampaignSummaryPrompt, buildReturningHeroPrompt } from '../ai/prompts';
 import type { DiceResult } from '../game/dice';
 import type { Message } from '../ai/provider';
 import { speakDM } from '../utils/voice';
@@ -26,6 +26,7 @@ interface GameContextValue {
   updateSettings: (s: Partial<AppSettings>) => void;
   sendPlayerAction: (action: string) => Promise<void>;
   sendRollResult: (result: DiceResult, dc?: number) => Promise<void>;
+  endCampaign: () => Promise<void>;
   isAIResponding: boolean;
   streamingText: string;
   pendingRoll: PendingRoll | null;
@@ -98,6 +99,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   }, [state]);
 
+  // Track whether we've triggered the returning hero intro
+  const returningIntroSent = useRef(false);
+
   const updateSettings = useCallback((partial: Partial<AppSettings>) => {
     setSettings(prev => {
       const next = { ...prev, ...partial };
@@ -167,7 +171,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     try {
       let fullResponse = '';
-      const systemPrompt = buildDMSystemPrompt(stateRef.current);
+      const rosterId = stateRef.current.rosterId;
+      const rosterChar = rosterId ? getRosterCharacter(rosterId) : null;
+      const systemPrompt = buildDMSystemPrompt(stateRef.current, rosterChar?.campaignHistory, settings.showMechanics);
 
       for await (const chunk of provider.streamMessage(messageHistory.current, systemPrompt)) {
         fullResponse += chunk;
@@ -213,6 +219,31 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   }, [settings, processAIResponse]);
 
+  // When a returning hero enters the game with an empty story log, trigger the AI intro
+  useEffect(() => {
+    if (
+      state.phase === 'playing' &&
+      state.rosterId &&
+      state.character &&
+      state.storyLog.length === 0 &&
+      !isAIResponding &&
+      !returningIntroSent.current
+    ) {
+      returningIntroSent.current = true;
+      const rosterChar = getRosterCharacter(state.rosterId);
+      if (rosterChar && rosterChar.campaignHistory.length > 0) {
+        const introPrompt = buildReturningHeroPrompt(state, rosterChar.campaignHistory);
+        sendToAI(introPrompt);
+      } else {
+        sendToAI('I begin my adventure. Set the scene for me!');
+      }
+    }
+    // Reset the flag when going back to setup
+    if (state.phase === 'setup') {
+      returningIntroSent.current = false;
+    }
+  }, [state.phase, state.rosterId, state.character, state.storyLog.length, isAIResponding, sendToAI]);
+
   const sendPlayerAction = useCallback(async (action: string) => {
     dispatch({
       type: 'ADD_STORY',
@@ -234,10 +265,75 @@ export function GameProvider({ children }: { children: ReactNode }) {
     await sendToAI(msg);
   }, [sendToAI]);
 
+  const endCampaign = useCallback(async () => {
+    const currentState = stateRef.current;
+    if (!currentState.character || currentState.storyLog.length < 2) return;
+
+    setIsAIResponding(true);
+    setStreamingText('Generating campaign summary...');
+
+    try {
+      const provider = getProvider(settings);
+      const summaryPrompt = buildCampaignSummaryPrompt(currentState);
+      let fullResponse = '';
+      for await (const chunk of provider.streamMessage(
+        [{ role: 'user', content: summaryPrompt }],
+        'You are a chronicler who summarizes D&D adventures. Respond with valid JSON only.',
+        2048
+      )) {
+        fullResponse += chunk;
+      }
+
+      const json = extractJSON(fullResponse);
+      const title = json?.title || 'Untitled Adventure';
+      const summary = json?.summary || 'An adventure was had.';
+
+      const campaign: CampaignRecord = {
+        id: crypto.randomUUID(),
+        title,
+        summary,
+        location: currentState.location,
+        questsCompleted: [...currentState.questLog],
+        npcsMet: [...currentState.npcsMetNames],
+        startDate: currentState.campaignStartDate || Date.now(),
+        endDate: Date.now(),
+        storyLog: [...currentState.storyLog],
+      };
+
+      if (currentState.rosterId) {
+        // Update existing roster character
+        addCampaignToRoster(currentState.rosterId, campaign, currentState.character);
+      } else {
+        // First campaign — add character to roster
+        const newRosterId = crypto.randomUUID();
+        addToRoster({
+          id: newRosterId,
+          character: currentState.character,
+          campaignHistory: [campaign],
+          createdAt: Date.now(),
+        });
+      }
+
+      setStreamingText('');
+      messageHistory.current = [];
+      dispatch({ type: 'NEW_GAME' });
+      dispatch({ type: 'SET_PHASE', phase: 'setup' });
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      dispatch({
+        type: 'ADD_STORY',
+        entry: { id: crypto.randomUUID(), type: 'system', text: `Failed to end campaign: ${errorMsg}`, timestamp: Date.now() },
+      });
+      setStreamingText('');
+    } finally {
+      setIsAIResponding(false);
+    }
+  }, [settings, dispatch]);
+
   return (
     <GameContext.Provider value={{
       state, dispatch, settings, updateSettings,
-      sendPlayerAction, sendRollResult,
+      sendPlayerAction, sendRollResult, endCampaign,
       isAIResponding, streamingText,
       pendingRoll, setPendingRoll,
       suggestedActions,

@@ -25,6 +25,25 @@ export interface StoryEntry {
   rollResult?: DiceResult;
 }
 
+export interface CampaignRecord {
+  id: string;
+  title: string;
+  summary: string;
+  location: string;
+  questsCompleted: string[];
+  npcsMet: string[];
+  startDate: number;
+  endDate: number;
+  storyLog: StoryEntry[];
+}
+
+export interface RosterCharacter {
+  id: string;
+  character: Character;
+  campaignHistory: CampaignRecord[];
+  createdAt: number;
+}
+
 export interface GameState {
   phase: GamePhase;
   character: Character | null;
@@ -34,6 +53,8 @@ export interface GameState {
   location: string;
   npcsMetNames: string[];
   sessionId: string;
+  rosterId: string | null;
+  campaignStartDate: number | null;
 }
 
 export type GameAction =
@@ -68,6 +89,8 @@ export function createInitialState(): GameState {
     location: 'Unknown',
     npcsMetNames: [],
     sessionId: crypto.randomUUID(),
+    rosterId: null,
+    campaignStartDate: null,
   };
 }
 
@@ -77,7 +100,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, phase: action.phase };
 
     case 'SET_CHARACTER':
-      return { ...state, character: action.character };
+      return { ...state, character: action.character, campaignStartDate: state.campaignStartDate || Date.now() };
 
     case 'ADD_STORY':
       return { ...state, storyLog: [...state.storyLog, action.entry] };

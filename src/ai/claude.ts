@@ -12,7 +12,7 @@ export class ClaudeProvider implements AIProvider {
     return this.apiKey.length > 0;
   }
 
-  async sendMessage(messages: Message[], systemPrompt: string): Promise<string> {
+  async sendMessage(messages: Message[], systemPrompt: string, maxTokens = 2048): Promise<string> {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -23,7 +23,7 @@ export class ClaudeProvider implements AIProvider {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5-20250929',
-        max_tokens: 1024,
+        max_tokens: maxTokens,
         system: systemPrompt,
         messages: messages.map(m => ({ role: m.role, content: m.content })),
       }),
@@ -38,7 +38,7 @@ export class ClaudeProvider implements AIProvider {
     return data.content[0].text;
   }
 
-  async *streamMessage(messages: Message[], systemPrompt: string): AsyncGenerator<string, void, unknown> {
+  async *streamMessage(messages: Message[], systemPrompt: string, maxTokens = 2048): AsyncGenerator<string, void, unknown> {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -49,7 +49,7 @@ export class ClaudeProvider implements AIProvider {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5-20250929',
-        max_tokens: 1024,
+        max_tokens: maxTokens,
         stream: true,
         system: systemPrompt,
         messages: messages.map(m => ({ role: m.role, content: m.content })),

@@ -5,8 +5,8 @@ export interface Message {
 
 export interface AIProvider {
   name: string;
-  sendMessage(messages: Message[], systemPrompt: string): Promise<string>;
-  streamMessage(messages: Message[], systemPrompt: string): AsyncGenerator<string, void, unknown>;
+  sendMessage(messages: Message[], systemPrompt: string, maxTokens?: number): Promise<string>;
+  streamMessage(messages: Message[], systemPrompt: string, maxTokens?: number): AsyncGenerator<string, void, unknown>;
   isConfigured(): boolean;
 }
 

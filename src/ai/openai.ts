@@ -14,7 +14,7 @@ export class OpenAIProvider implements AIProvider {
     return this.apiKey.length > 0;
   }
 
-  async sendMessage(messages: Message[], systemPrompt: string): Promise<string> {
+  async sendMessage(messages: Message[], systemPrompt: string, maxTokens = 2048): Promise<string> {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -23,7 +23,7 @@ export class OpenAIProvider implements AIProvider {
       },
       body: JSON.stringify({
         model: this.model,
-        max_tokens: 1024,
+        max_tokens: maxTokens,
         messages: [
           { role: 'system', content: systemPrompt },
           ...messages.map(m => ({ role: m.role, content: m.content })),
@@ -40,7 +40,7 @@ export class OpenAIProvider implements AIProvider {
     return data.choices[0].message.content;
   }
 
-  async *streamMessage(messages: Message[], systemPrompt: string): AsyncGenerator<string, void, unknown> {
+  async *streamMessage(messages: Message[], systemPrompt: string, maxTokens = 2048): AsyncGenerator<string, void, unknown> {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -49,7 +49,7 @@ export class OpenAIProvider implements AIProvider {
       },
       body: JSON.stringify({
         model: this.model,
-        max_tokens: 1024,
+        max_tokens: maxTokens,
         stream: true,
         messages: [
           { role: 'system', content: systemPrompt },

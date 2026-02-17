@@ -64,7 +64,8 @@ INSTRUCTIONS:
       let fullText = '';
       for await (const chunk of provider.streamMessage(
         [{ role: 'user', content: prompt }],
-        'You are a fantasy author who writes vivid, engaging prose. You take D&D adventure logs and turn them into beautiful short stories.'
+        'You are a fantasy author who writes vivid, engaging prose. You take D&D adventure logs and turn them into beautiful short stories.',
+        4096
       )) {
         fullText += chunk;
         setStory(fullText);

@@ -17,6 +17,7 @@ export function AISettings({ onClose }: AISettingsProps) {
   const [openaiModel, setOpenaiModel] = useState(settings.openaiModel);
   const [elevenKey, setElevenKey] = useState(settings.elevenLabsApiKey);
   const [elevenVoice, setElevenVoice] = useState(settings.elevenLabsVoiceId);
+  const [showMechanics, setShowMechanics] = useState(settings.showMechanics);
 
   const save = () => {
     updateSettings({
@@ -26,6 +27,7 @@ export function AISettings({ onClose }: AISettingsProps) {
       openaiModel,
       elevenLabsApiKey: elevenKey,
       elevenLabsVoiceId: elevenVoice,
+      showMechanics,
     });
     onClose();
   };
@@ -93,6 +95,23 @@ export function AISettings({ onClose }: AISettingsProps) {
             </div>
           </>
         )}
+
+        <div className="settings-divider"></div>
+
+        <div className="settings-section">
+          <label className="settings-label" style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={showMechanics}
+              onChange={(e) => setShowMechanics(e.target.checked)}
+              style={{ width: '18px', height: '18px', accentColor: 'var(--accent-purple)' }}
+            />
+            Show Game Mechanics
+          </label>
+          <small className="settings-hint">
+            When enabled, the DM calls for rolls, references AC, and runs combat like a real tabletop session. When off, the story stays purely narrative — mechanics happen behind the scenes.
+          </small>
+        </div>
 
         <div className="settings-divider"></div>
 

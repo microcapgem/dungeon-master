@@ -1,9 +1,10 @@
-import type { GameState } from '../game/state';
+import type { GameState, RosterCharacter, CampaignRecord } from '../game/state';
 import type { ProviderType } from '../ai/provider';
 
 const GAME_STATE_KEY = 'aidm_game_state';
 const SETTINGS_KEY = 'aidm_settings';
 const SAVES_INDEX_KEY = 'aidm_saves_index';
+const ROSTER_KEY = 'aidm_character_roster';
 
 export interface AppSettings {
   providerType: ProviderType;
@@ -12,6 +13,7 @@ export interface AppSettings {
   openaiModel: string;
   elevenLabsApiKey: string;
   elevenLabsVoiceId: string;
+  showMechanics: boolean;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -21,6 +23,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   openaiModel: 'gpt-5.2',
   elevenLabsApiKey: '',
   elevenLabsVoiceId: 'pNInz6obpgDQGcFmaJgB',  // "Adam" — deep, narration-style voice
+  showMechanics: true,
 };
 
 // ============ Auto-save (current session) ============
@@ -133,6 +136,59 @@ export function overwriteSave(id: string, name: string, state: GameState): SaveS
   setSavesIndex(index);
 
   return slot;
+}
+
+// ============ Character Roster ============
+
+export function loadRoster(): RosterCharacter[] {
+  try {
+    const data = localStorage.getItem(ROSTER_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveRoster(roster: RosterCharacter[]): void {
+  try {
+    localStorage.setItem(ROSTER_KEY, JSON.stringify(roster));
+  } catch (e) {
+    console.error('Failed to save roster:', e);
+  }
+}
+
+export function addToRoster(rosterChar: RosterCharacter): void {
+  const roster = loadRoster();
+  roster.push(rosterChar);
+  saveRoster(roster);
+}
+
+export function updateRosterCharacter(id: string, updates: Partial<Pick<RosterCharacter, 'character' | 'campaignHistory'>>): void {
+  const roster = loadRoster();
+  const idx = roster.findIndex(r => r.id === id);
+  if (idx === -1) return;
+  if (updates.character) roster[idx].character = updates.character;
+  if (updates.campaignHistory) roster[idx].campaignHistory = updates.campaignHistory;
+  saveRoster(roster);
+}
+
+export function addCampaignToRoster(rosterId: string, campaign: CampaignRecord, updatedCharacter: import('../game/character').Character): void {
+  const roster = loadRoster();
+  const idx = roster.findIndex(r => r.id === rosterId);
+  if (idx === -1) return;
+  roster[idx].campaignHistory.push(campaign);
+  roster[idx].character = updatedCharacter;
+  saveRoster(roster);
+}
+
+export function getRosterCharacter(id: string): RosterCharacter | null {
+  const roster = loadRoster();
+  return roster.find(r => r.id === id) || null;
+}
+
+export function deleteRosterCharacter(id: string): void {
+  const roster = loadRoster().filter(r => r.id !== id);
+  saveRoster(roster);
 }
 
 // ============ Settings ============

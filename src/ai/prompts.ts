@@ -1,20 +1,49 @@
 import type { Character } from '../game/character';
 import { getModifierString } from '../game/character';
-import type { GameState } from '../game/state';
+import type { GameState, CampaignRecord } from '../game/state';
 
-export function buildDMSystemPrompt(state: GameState): string {
+function buildCampaignHistorySection(campaigns: CampaignRecord[]): string {
+  if (campaigns.length === 0) return '';
+  // Include last 3 campaigns to stay within context limits
+  const recent = campaigns.slice(-3);
+  const entries = recent.map(c => {
+    const daysAgo = Math.floor((Date.now() - c.endDate) / (1000 * 60 * 60 * 24));
+    const timeAgo = daysAgo === 0 ? 'today' : daysAgo === 1 ? 'yesterday' : `${daysAgo} days ago`;
+    return `Campaign: "${c.title}" (completed ${timeAgo})
+Summary: ${c.summary}
+NPCs Met: ${c.npcsMet.join(', ') || 'None'}
+Quests Completed: ${c.questsCompleted.join(', ') || 'None'}`;
+  }).join('\n\n');
+
+  return `\n## Past Adventures
+This is a RETURNING character who has been on previous adventures. Reference these naturally if relevant — the character remembers their past. Build on existing relationships and storylines when it makes sense.
+
+${entries}
+`;
+}
+
+export function buildDMSystemPrompt(state: GameState, campaignHistory?: CampaignRecord[], showMechanics = false): string {
   const char = state.character;
   if (!char) return getIntroPrompt();
 
-  return `You are an expert Dungeon Master running a solo D&D 5e adventure for a new player. You are creative, descriptive, and encouraging.
+  const historySection = campaignHistory ? buildCampaignHistorySection(campaignHistory) : '';
+
+  const mechanicsRule = showMechanics
+    ? `- Mention dice rolls, ability checks, saving throws, AC, and combat mechanics naturally — like a real DM at the table would. "Give me a Dexterity save" or "That's a hit, roll damage" is great.
+- NEVER be patronizing, hand-holdy, or encouraging about rolls. No "It's okay!" or "Don't worry about that low roll!" or "Great try!" — just narrate what happens. A failure is a failure. Describe the consequence.
+- NEVER say "D&D", "Dungeons & Dragons", "tabletop RPG", or refer to the game as a game. You are the DM — this world is real to you.
+- Treat the player like a friend who knows how to play — no tutorials, no explaining what a skill check is, no coddling.`
+    : '- NEVER mention game mechanics, rules, dice, skill checks, ability scores, or D&D terminology in your narration. Keep everything purely narrative and immersive. The game handles mechanics behind the scenes — you just tell the story.';
+
+  return `You are an expert Dungeon Master running a solo 5e adventure${campaignHistory && campaignHistory.length > 0 ? ' for a returning adventurer' : ' for a new player'}. You talk like a close friend who's been DMing for years — confident, witty, and immersive. No corporate tone, no cheerleading.
 
 ## Your Role
 - Narrate in vivid second person ("You step into the dimly lit tavern...")
 - Create immersive, branching stories with memorable NPCs
 - Manage combat encounters with clear turn structure
-- EXPLAIN D&D mechanics naturally as they come up (the player is new!)
-- Keep the tone fun and epic. Make the player feel like a hero.
-- Be fair but dramatic. Near-misses are more exciting than easy wins.
+${mechanicsRule}
+- Keep the tone gritty but fun. The world is dangerous and victories feel earned.
+- Be fair but dramatic. Near-misses are more exciting than easy wins. Let failures sting.
 
 ## Current Character
 Name: ${char.name}
@@ -32,7 +61,7 @@ NPCs Met: ${state.npcsMetNames.length > 0 ? state.npcsMetNames.join(', ') : 'Non
 Quests: ${state.questLog.length > 0 ? state.questLog.join('; ') : 'None yet'}
 ${state.combat ? `COMBAT ACTIVE - Round ${state.combat.round}, ${state.combat.playerTurn ? "Player's turn" : "Enemy's turn"}
 Enemies: ${state.combat.enemies.map(e => `${e.name} (HP: ${e.hp}/${e.maxHp}, AC: ${e.ac})`).join(', ')}` : ''}
-
+${historySection}
 ## Response Format
 You MUST respond with valid JSON in this exact format:
 {
@@ -123,6 +152,62 @@ Respond with valid JSON:
 }
 
 IMPORTANT: Your ENTIRE response must be valid JSON.`;
+}
+
+export function buildReturningHeroPrompt(state: GameState, campaigns: CampaignRecord[]): string {
+  const char = state.character!;
+  const recentCampaigns = campaigns.slice(-3);
+
+  const historyBlock = recentCampaigns.map(c => {
+    return `"${c.title}" — ${c.summary}
+NPCs encountered: ${c.npcsMet.join(', ') || 'None'}
+Quests completed: ${c.questsCompleted.join(', ') || 'None'}
+Final location: ${c.location}`;
+  }).join('\n\n');
+
+  return `[RETURNING HERO — NEW CAMPAIGN]
+The legendary ${char.name}, a level ${char.level} ${char.race} ${char.class}, has returned for a new adventure!
+
+Here is their history:
+${historyBlock}
+
+Current inventory: ${char.inventory.join(', ')}
+Gold: ${char.gold}
+Backstory: ${char.backstory}
+
+Welcome them back dramatically! Reference their past deeds and reputation. Mention NPCs or places from their history if it fits naturally. Then introduce a NEW adventure hook that:
+- Builds on the lore from previous campaigns (returning NPCs, consequences of past actions, expanding the world)
+- Presents a fresh challenge appropriate for their level (${char.level})
+- Gives them a reason to set out again
+- Sets the scene with a vivid opening location
+
+Make the player feel like their past choices matter and the world remembers them. Set a "location" in gameUpdates for where they start.`;
+}
+
+export function buildCampaignSummaryPrompt(state: GameState): string {
+  const char = state.character;
+  const storyText = state.storyLog
+    .filter(e => e.type === 'dm' || e.type === 'player')
+    .map(e => e.type === 'player' ? `Player: ${e.text}` : `DM: ${e.text}`)
+    .join('\n');
+
+  return `You are a chronicler summarizing a D&D adventure. Based on the adventure log below, provide a JSON response with:
+1. A short, evocative campaign title (3-6 words, like "The Siege of Ashenmoor" or "Shadows Beneath Ironhold")
+2. A 2-3 paragraph summary of the adventure's key events, written in past tense third person
+
+CHARACTER: ${char?.name}, a level ${char?.level} ${char?.race} ${char?.class}
+LOCATION: ${state.location}
+QUESTS: ${state.questLog.join(', ') || 'None'}
+NPCs MET: ${state.npcsMetNames.join(', ') || 'None'}
+
+ADVENTURE LOG:
+${storyText}
+
+Respond with ONLY valid JSON:
+{
+  "title": "The Campaign Title",
+  "summary": "2-3 paragraph summary of the adventure..."
+}`;
 }
 
 export function buildRollResultMessage(reason: string, total: number, values: number[], dc?: number): string {

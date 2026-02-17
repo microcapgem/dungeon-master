@@ -1959,6 +1959,315 @@ body {
   flex-wrap: wrap;
 }
 
+/* ============ RETURNING HEROES / ROSTER ============ */
+
+.returning-heroes {
+  margin-bottom: 48px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--border);
+}
+
+.returning-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--accent-gold);
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.returning-subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 24px;
+}
+
+.roster-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.roster-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.roster-card:hover {
+  border-color: var(--accent-gold);
+}
+
+.roster-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  cursor: pointer;
+}
+
+.roster-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.roster-name {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--accent-gold);
+}
+
+.roster-details {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.roster-campaigns {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.roster-expand {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.roster-card-expanded {
+  padding: 0 20px 20px;
+  border-top: 1px solid var(--border);
+  animation: expandDown 0.25s ease;
+}
+
+.roster-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.roster-delete-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--accent-red);
+}
+
+.btn-danger-sm {
+  background: var(--accent-red);
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-danger-sm:hover {
+  opacity: 0.8;
+}
+
+.btn-secondary-sm {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary-sm:hover {
+  border-color: var(--text-secondary);
+}
+
+/* End Campaign button */
+.end-campaign-btn {
+  border-color: var(--accent-green) !important;
+  color: var(--accent-green) !important;
+}
+
+.end-campaign-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============ CAMPAIGN HISTORY ============ */
+
+.campaign-history {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.no-campaigns {
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
+  padding: 16px 0;
+}
+
+.campaign-record {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.campaign-header {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.campaign-header:hover {
+  background: var(--bg-card-hover);
+}
+
+.campaign-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.campaign-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--accent-gold);
+}
+
+.campaign-date {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.campaign-summary-preview {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0 0 8px;
+}
+
+.campaign-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.campaign-meta-item {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  background: var(--bg-primary);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.campaign-expand-hint {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  color: var(--accent-purple);
+  margin-left: auto;
+}
+
+.campaign-full {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: expandDown 0.25s ease;
+}
+
+.campaign-full h4 {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  color: var(--accent-gold);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.campaign-full-summary p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.campaign-quests ul {
+  list-style: none;
+  padding: 0;
+}
+
+.campaign-quests li {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  padding: 3px 0;
+  padding-left: 16px;
+  position: relative;
+}
+
+.campaign-quests li::before {
+  content: '\2713';
+  position: absolute;
+  left: 0;
+  color: var(--accent-green);
+}
+
+.campaign-npcs p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.campaign-log-entries {
+  max-height: 400px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.campaign-log-entry {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.campaign-log-dm {
+  background: rgba(212, 167, 74, 0.05);
+  border-left: 2px solid var(--accent-gold);
+}
+
+.campaign-log-player {
+  background: rgba(155, 109, 255, 0.05);
+  border-left: 2px solid var(--accent-purple);
+}
+
+.campaign-log-label {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-right: 6px;
+  color: var(--text-muted);
+}
+
+.campaign-log-text {
+  color: var(--text-secondary);
+}
+
 /* ============ RESPONSIVE ============ */
 
 @media (max-width: 768px) {
