@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment, ContactShadows } from '@react-three/drei';
+import { Html, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 import type { DieType } from '../../game/dice';
 import { DIE_MAX } from '../../game/dice';
@@ -50,20 +50,20 @@ export function DiceScene({ dieType, onResult, rolling, onRollStart }: DiceScene
     <div className="dice-scene-container">
       <div className={`dice-canvas-wrapper ${isNat20 ? 'crit-success' : ''} ${isNat1 ? 'crit-fail' : ''}`}>
         <Canvas
-          camera={{ position: [0, 2.5, 4], fov: 45 }}
+          camera={{ position: [0, 2, 4.5], fov: 45 }}
           shadows
-          gl={{ antialias: true, alpha: true }}
-          style={{ background: 'transparent' }}
+          gl={{ antialias: true }}
+          style={{ background: 'radial-gradient(ellipse at center, #1a1333 0%, #0a0a1a 100%)' }}
         >
-          <ambientLight intensity={0.4} />
-          <directionalLight position={[5, 8, 5]} intensity={1.2} castShadow />
-          <directionalLight position={[-3, 4, -2]} intensity={0.4} color="#a78bfa" />
-          <pointLight position={[0, 3, 0]} intensity={0.6} color="#d4a74a" />
+          <ambientLight intensity={0.6} />
+          <directionalLight position={[5, 8, 5]} intensity={1.5} castShadow />
+          <directionalLight position={[-3, 4, -2]} intensity={0.6} color="#a78bfa" />
+          <pointLight position={[0, 3, 2]} intensity={0.8} color="#d4a74a" />
+          <pointLight position={[-2, 2, -1]} intensity={0.4} color="#6c63ff" />
 
           <Die3D dieType={dieType} animating={animating} label={label} isNat20={isNat20} isNat1={isNat1} />
 
-          <ContactShadows position={[0, -1.2, 0]} opacity={0.5} scale={8} blur={2} far={4} />
-          <Environment preset="night" />
+          <ContactShadows position={[0, -1.2, 0]} opacity={0.6} scale={8} blur={2} far={4} />
         </Canvas>
       </div>
 
@@ -92,72 +92,44 @@ export function DiceScene({ dieType, onResult, rolling, onRollStart }: DiceScene
    ============================================================ */
 
 const DIE_COLORS: Record<DieType, string> = {
-  d4:  '#c0392b',
-  d6:  '#2471a3',
-  d8:  '#1e8449',
-  d10: '#7d3c98',
-  d12: '#b9770e',
-  d20: '#6c3483',
+  d4:  '#e74c3c',
+  d6:  '#3498db',
+  d8:  '#27ae60',
+  d10: '#9b59b6',
+  d12: '#e67e22',
+  d20: '#8e44ad',
 };
 
 const DIE_EMISSIVE: Record<DieType, string> = {
-  d4:  '#3b0f0f',
-  d6:  '#0e2a40',
-  d8:  '#0d2e18',
-  d10: '#2a1040',
-  d12: '#3b2508',
-  d20: '#240e38',
+  d4:  '#5a1a1a',
+  d6:  '#1a3a5a',
+  d8:  '#1a4a2a',
+  d10: '#3a1a5a',
+  d12: '#5a3a1a',
+  d20: '#3a1a4a',
 };
 
 function Die3D({ dieType, animating, label, isNat20, isNat1 }: {
   dieType: DieType; animating: boolean; label: string; isNat20: boolean; isNat1: boolean;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null!);
-  const targetRotation = useRef(new THREE.Euler(0, 0, 0));
+  const groupRef = useRef<THREE.Group>(null!);
   const spinSpeed = useRef(new THREE.Vector3(0, 0, 0));
   const animTime = useRef(0);
 
   // Create geometry based on die type
   const geometry = useMemo(() => {
     switch (dieType) {
-      case 'd4':  return new THREE.TetrahedronGeometry(1.1, 0);
-      case 'd6':  return new THREE.BoxGeometry(1.3, 1.3, 1.3);
-      case 'd8':  return new THREE.OctahedronGeometry(1.1, 0);
-      case 'd10': return new THREE.DodecahedronGeometry(1.0, 0); // approximation
-      case 'd12': return new THREE.DodecahedronGeometry(1.0, 0);
-      case 'd20': return new THREE.IcosahedronGeometry(1.15, 0);
+      case 'd4':  return new THREE.TetrahedronGeometry(1.2, 0);
+      case 'd6':  return new THREE.BoxGeometry(1.4, 1.4, 1.4);
+      case 'd8':  return new THREE.OctahedronGeometry(1.2, 0);
+      case 'd10': return new THREE.DodecahedronGeometry(1.1, 0);
+      case 'd12': return new THREE.DodecahedronGeometry(1.1, 0);
+      case 'd20': return new THREE.IcosahedronGeometry(1.2, 0);
     }
   }, [dieType]);
 
-  // Create texture with the current number
-  const texture = useMemo(() => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 256;
-    canvas.height = 256;
-    const ctx = canvas.getContext('2d')!;
-
-    // Transparent background
-    ctx.clearRect(0, 0, 256, 256);
-
-    if (label) {
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 120px Cinzel, serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.shadowColor = 'rgba(0,0,0,0.8)';
-      ctx.shadowBlur = 8;
-      ctx.fillText(label, 128, 128);
-
-      // Underline 6 and 9 to distinguish them
-      if (label === '6' || label === '9') {
-        ctx.fillRect(88, 200, 80, 6);
-      }
-    }
-
-    const tex = new THREE.CanvasTexture(canvas);
-    tex.needsUpdate = true;
-    return tex;
-  }, [label]);
+  // Edge geometry for visible wireframe
+  const edges = useMemo(() => new THREE.EdgesGeometry(geometry), [geometry]);
 
   // Start spin when animating
   useEffect(() => {
@@ -168,62 +140,77 @@ function Die3D({ dieType, animating, label, isNat20, isNat1 }: {
         8 + Math.random() * 10,
         4 + Math.random() * 6,
       );
-      // Pick a random end rotation
-      targetRotation.current.set(
-        Math.random() * Math.PI * 4,
-        Math.random() * Math.PI * 4,
-        Math.random() * Math.PI * 2,
-      );
     }
   }, [animating]);
 
   useFrame((_, delta) => {
-    if (!meshRef.current) return;
-    const mesh = meshRef.current;
+    if (!groupRef.current) return;
+    const group = groupRef.current;
 
     if (animating) {
       animTime.current += delta;
-      const t = Math.min(animTime.current / 1.2, 1); // 1.2 second animation
-      const ease = 1 - Math.pow(1 - t, 3); // ease-out cubic
-
-      // Spin fast at start, slow down
+      const t = Math.min(animTime.current / 1.2, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
       const speed = 1 - ease;
-      mesh.rotation.x += spinSpeed.current.x * delta * speed;
-      mesh.rotation.y += spinSpeed.current.y * delta * speed;
-      mesh.rotation.z += spinSpeed.current.z * delta * speed;
 
-      // Bounce: up then settle
+      group.rotation.x += spinSpeed.current.x * delta * speed;
+      group.rotation.y += spinSpeed.current.y * delta * speed;
+      group.rotation.z += spinSpeed.current.z * delta * speed;
+
       const bounce = Math.sin(t * Math.PI) * (1 - t) * 1.5;
-      mesh.position.y = bounce;
-      mesh.scale.setScalar(0.5 + ease * 0.5);
+      group.position.y = bounce;
+      group.scale.setScalar(0.5 + ease * 0.5);
     } else {
-      // Gentle idle rotation
-      mesh.rotation.y += delta * 0.3;
-      mesh.rotation.x = Math.sin(Date.now() * 0.001) * 0.1;
-      mesh.position.y = Math.sin(Date.now() * 0.002) * 0.05;
+      group.rotation.y += delta * 0.3;
+      group.rotation.x = Math.sin(Date.now() * 0.001) * 0.1;
+      group.position.y = Math.sin(Date.now() * 0.002) * 0.05;
     }
   });
 
   const color = DIE_COLORS[dieType];
   const emissiveColor = isNat20 ? '#ffd700' : isNat1 ? '#ff2222' : DIE_EMISSIVE[dieType];
-  const emissiveIntensity = isNat20 ? 0.6 : isNat1 ? 0.5 : 0.15;
+  const emissiveIntensity = isNat20 ? 0.8 : isNat1 ? 0.6 : 0.25;
+
+  // Number label style
+  const labelColor = isNat20 ? '#ffd700' : isNat1 ? '#ff4444' : '#ffffff';
 
   return (
-    <mesh ref={meshRef} geometry={geometry} castShadow>
-      <meshPhysicalMaterial
-        color={color}
-        emissive={emissiveColor}
-        emissiveIntensity={emissiveIntensity}
-        metalness={0.1}
-        roughness={0.2}
-        clearcoat={1}
-        clearcoatRoughness={0.1}
-        transmission={0.15}
-        thickness={0.5}
-        ior={1.5}
-        envMapIntensity={1.5}
-        map={texture}
-      />
-    </mesh>
+    <group ref={groupRef}>
+      {/* Solid die shape */}
+      <mesh geometry={geometry} castShadow>
+        <meshPhysicalMaterial
+          color={color}
+          emissive={emissiveColor}
+          emissiveIntensity={emissiveIntensity}
+          metalness={0.3}
+          roughness={0.15}
+          clearcoat={1}
+          clearcoatRoughness={0.05}
+        />
+      </mesh>
+
+      {/* Visible edges */}
+      <lineSegments geometry={edges}>
+        <lineBasicMaterial color="#ffffff" transparent opacity={0.2} />
+      </lineSegments>
+
+      {/* Number label — always faces camera */}
+      {label && (
+        <Html center distanceFactor={5} style={{ pointerEvents: 'none' }}>
+          <div style={{
+            fontSize: '42px',
+            fontWeight: 900,
+            fontFamily: 'Cinzel, Georgia, serif',
+            color: labelColor,
+            textShadow: `0 0 12px ${labelColor}, 0 2px 8px rgba(0,0,0,0.9), 0 0 24px rgba(0,0,0,0.6)`,
+            userSelect: 'none',
+            lineHeight: 1,
+            textDecoration: (label === '6' || label === '9') ? 'underline' : 'none',
+          }}>
+            {label}
+          </div>
+        </Html>
+      )}
+    </group>
   );
 }

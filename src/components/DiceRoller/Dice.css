@@ -13,11 +13,14 @@
 }
 
 .dice-canvas-wrapper {
-  width: 200px;
-  height: 200px;
+  width: 280px;
+  height: 280px;
   border-radius: 16px;
   overflow: hidden;
   transition: box-shadow 0.4s;
+  background: radial-gradient(ellipse at center, #1a1333 0%, #0a0a1a 100%);
+  border: 1px solid rgba(212, 167, 74, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 0 30px rgba(0, 0, 0, 0.3);
 }
 
 .dice-canvas-wrapper.crit-success {

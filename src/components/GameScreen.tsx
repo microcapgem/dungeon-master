@@ -7,6 +7,15 @@ import { CombatTracker } from './CombatTracker';
 import { DiceScene } from './DiceRoller/DiceScene';
 import type { DieType } from '../game/dice';
 import type { DiceResult } from '../game/dice';
+import { DIE_MAX } from '../game/dice';
+
+/** Normalize AI dice strings like "1d8", "1d20", "D6" → "d8", "d20", "d6" */
+function normalizeDieType(raw: string | undefined): DieType {
+  if (!raw) return 'd20';
+  const cleaned = raw.toLowerCase().replace(/^\d+/, ''); // strip leading count
+  if (cleaned in DIE_MAX) return cleaned as DieType;
+  return 'd20';
+}
 
 export function GameScreen() {
   const {
@@ -25,9 +34,10 @@ export function GameScreen() {
   const handleRollResult = useCallback(async (value: number) => {
     if (!pendingRoll) return;
     setRolling(false);
+    const dieType = normalizeDieType(pendingRoll.dice);
     const result: DiceResult = {
       roll: {
-        die: (pendingRoll.dice || 'd20') as DieType,
+        die: dieType,
         count: 1,
         modifier: pendingRoll.modifier || 0,
         reason: pendingRoll.reason || 'Roll',
@@ -112,7 +122,7 @@ export function GameScreen() {
               )}
             </div>
             <DiceScene
-              dieType={(pendingRoll.dice || 'd20') as DieType}
+              dieType={normalizeDieType(pendingRoll.dice)}
               onResult={handleRollResult}
               rolling={rolling}
               onRollStart={() => setRolling(true)}
