@@ -1,0 +1,151 @@
+/* ============================================================
+   D&D Dice — Three.js 3D rendered
+   ============================================================ */
+
+.dice-scene-container {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 0;
+}
+
+.dice-canvas-wrapper {
+  width: 200px;
+  height: 200px;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: box-shadow 0.4s;
+}
+
+.dice-canvas-wrapper.crit-success {
+  box-shadow: 0 0 40px rgba(255, 215, 0, 0.5), 0 0 80px rgba(255, 215, 0, 0.2);
+  animation: critPulse 1.5s ease-in-out infinite;
+}
+
+.dice-canvas-wrapper.crit-fail {
+  box-shadow: 0 0 40px rgba(231, 76, 60, 0.5), 0 0 80px rgba(231, 76, 60, 0.2);
+}
+
+@keyframes critPulse {
+  0%, 100% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.5), 0 0 80px rgba(255, 215, 0, 0.2); }
+  50% { box-shadow: 0 0 60px rgba(255, 215, 0, 0.7), 0 0 100px rgba(255, 215, 0, 0.3); }
+}
+
+/* ---------- Controls ---------- */
+
+.dice-controls {
+  text-align: center;
+}
+
+.roll-button {
+  position: relative;
+  background: linear-gradient(135deg, #d4a74a 0%, #b8860b 50%, #d4a74a 100%);
+  color: #1a0a2e;
+  border: none;
+  padding: 16px 48px;
+  border-radius: 12px;
+  font-family: 'Cinzel', serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow:
+    0 4px 15px rgba(212, 167, 74, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+}
+
+.roll-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%);
+  transition: transform 0.4s;
+  transform: translateX(-100%);
+}
+
+.roll-button:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 35px rgba(212, 167, 74, 0.55);
+}
+
+.roll-button:hover::before {
+  transform: translateX(100%);
+}
+
+.roll-button:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* ---------- Result badge ---------- */
+
+.result-badge {
+  background: rgba(15, 12, 30, 0.85);
+  padding: 12px 32px;
+  border-radius: 14px;
+  border: 2px solid #d4a74a;
+  animation: resultPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  backdrop-filter: blur(10px);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+@keyframes resultPop {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.result-badge.crit {
+  border-color: #ffd700;
+  background: linear-gradient(135deg, rgba(15, 12, 30, 0.85), rgba(255, 215, 0, 0.12));
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.25);
+  animation: resultPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), critGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes critGlow {
+  0%, 100% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.25); }
+  50% { box-shadow: 0 0 50px rgba(255, 215, 0, 0.4); }
+}
+
+.result-badge.fumble {
+  border-color: #e74c3c;
+  background: linear-gradient(135deg, rgba(15, 12, 30, 0.85), rgba(231, 76, 60, 0.12));
+  box-shadow: 0 0 30px rgba(231, 76, 60, 0.25);
+}
+
+.crit-text {
+  color: #ffd700;
+  font-family: 'Cinzel', serif;
+  font-size: 0.95rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.fumble-text {
+  color: #e74c3c;
+  font-family: 'Cinzel', serif;
+  font-size: 0.95rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.result-number {
+  font-family: 'Cinzel', serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(212, 167, 74, 0.3);
+}
+
+.result-max {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: 'Cinzel', serif;
+}
