@@ -27,11 +27,14 @@ interface GameContextValue {
   sendPlayerAction: (action: string) => Promise<void>;
   sendRollResult: (result: DiceResult, dc?: number) => Promise<void>;
   endCampaign: () => Promise<void>;
+  undoLastTurn: () => void;
+  canUndo: boolean;
   isAIResponding: boolean;
   streamingText: string;
   pendingRoll: PendingRoll | null;
   setPendingRoll: (roll: PendingRoll | null) => void;
   suggestedActions: string[];
+  lastAutoSave: number | null;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -88,14 +91,42 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [streamingText, setStreamingText] = useState('');
   const [pendingRoll, setPendingRoll] = useState<PendingRoll | null>(null);
   const [suggestedActions, setSuggestedActions] = useState<string[]>([]);
+  const [lastAutoSave, setLastAutoSave] = useState<number | null>(null);
   const messageHistory = useRef<Message[]>([]);
   const stateRef = useRef(state);
   stateRef.current = state;
+
+  // Undo stack — stores snapshots before each player action
+  const undoStack = useRef<{ state: GameState; messages: Message[] }[]>([]);
+  const MAX_UNDO = 5;
+
+  const pushUndo = useCallback(() => {
+    undoStack.current.push({
+      state: structuredClone(stateRef.current),
+      messages: [...messageHistory.current],
+    });
+    if (undoStack.current.length > MAX_UNDO) {
+      undoStack.current.shift();
+    }
+  }, []);
+
+  const undoLastTurn = useCallback(() => {
+    const snapshot = undoStack.current.pop();
+    if (!snapshot) return;
+    dispatch({ type: 'LOAD_STATE', state: snapshot.state });
+    messageHistory.current = snapshot.messages;
+    setPendingRoll(null);
+    setSuggestedActions([]);
+    setStreamingText('');
+  }, []);
+
+  const canUndo = undoStack.current.length > 0;
 
   // Auto-save game state
   useEffect(() => {
     if (state.phase !== 'setup') {
       saveGameState(state);
+      setLastAutoSave(Date.now());
     }
   }, [state]);
 
@@ -264,13 +295,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, [state.phase, state.rosterId, state.character, state.storyLog.length, isAIResponding, sendToAI]);
 
   const sendPlayerAction = useCallback(async (action: string) => {
+    pushUndo();
     dispatch({
       type: 'ADD_STORY',
       entry: { id: crypto.randomUUID(), type: 'player', text: action, timestamp: Date.now() },
     });
     setSuggestedActions([]);
     await sendToAI(action);
-  }, [sendToAI]);
+  }, [sendToAI, pushUndo]);
 
   const sendRollResult = useCallback(async (result: DiceResult, dc?: number) => {
     const rollText = `Rolled ${result.values.join(', ')} + ${result.roll.modifier} = ${result.total}${dc ? ` (DC ${dc}: ${result.total >= dc ? 'Success!' : 'Failure!'})` : ''}`;
@@ -353,9 +385,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
     <GameContext.Provider value={{
       state, dispatch, settings, updateSettings,
       sendPlayerAction, sendRollResult, endCampaign,
+      undoLastTurn, canUndo,
       isAIResponding, streamingText,
       pendingRoll, setPendingRoll,
       suggestedActions,
+      lastAutoSave,
     }}>
       {children}
     </GameContext.Provider>

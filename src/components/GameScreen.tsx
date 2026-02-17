@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
+import { createSave } from '../utils/storage';
 import { StoryLog } from './Narrative/StoryLog';
 import { ActionInput } from './Narrative/ActionInput';
 import { CharacterSheet } from './CharacterCreation/CharacterSheet';
@@ -23,10 +24,36 @@ export function GameScreen() {
     state, sendPlayerAction, sendRollResult,
     isAIResponding, streamingText,
     pendingRoll, suggestedActions,
+    undoLastTurn, canUndo, lastAutoSave,
   } = useGame();
   const [showSheet, setShowSheet] = useState(false);
   const [rolling, setRolling] = useState(false);
   const [hpExpanded, setHpExpanded] = useState(false);
+  const [quickSaveFlash, setQuickSaveFlash] = useState('');
+
+  // Ctrl+S quick save
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        if (state.character) {
+          const name = `Quick Save - ${state.character.name}`;
+          createSave(name, state);
+          setQuickSaveFlash('Saved!');
+          setTimeout(() => setQuickSaveFlash(''), 1500);
+        }
+      }
+      // Ctrl+Z undo
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        if (canUndo && !isAIResponding) {
+          undoLastTurn();
+        }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [state, canUndo, isAIResponding, undoLastTurn]);
 
   const handleAction = useCallback(async (action: string) => {
     await sendPlayerAction(action);
@@ -100,6 +127,27 @@ export function GameScreen() {
             </div>
           )}
         </div>
+      )}
+
+      {/* Quick save flash */}
+      {quickSaveFlash && <div className="quick-save-flash">{quickSaveFlash}</div>}
+
+      {/* Auto-save indicator */}
+      {lastAutoSave && (
+        <div className="auto-save-indicator" title={`Last saved: ${new Date(lastAutoSave).toLocaleTimeString()}`}>
+          Auto-saved
+        </div>
+      )}
+
+      {/* Undo button */}
+      {canUndo && !isAIResponding && (
+        <button
+          className="undo-fab"
+          onClick={undoLastTurn}
+          title="Undo last action (Ctrl+Z)"
+        >
+          {'\u21A9'}
+        </button>
       )}
 
       {/* Fixed Character button — opens full sheet overlay */}
