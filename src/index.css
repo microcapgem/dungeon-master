@@ -1072,19 +1072,7 @@ body {
 .story-player .entry-label { color: var(--accent-purple); }
 .story-roll .entry-label { color: var(--accent-blue); }
 
-.entry-text {
-  line-height: 1.8;
-  white-space: pre-line;
-}
-
-.story-dm .entry-text {
-  font-size: 1.05rem;
-}
-
-.story-player .entry-text {
-  font-size: 0.95rem;
-  font-style: italic;
-}
+.entry-text { line-height: 1.7; }
 
 .streaming .entry-text {
   border-right: 2px solid var(--accent-gold);
