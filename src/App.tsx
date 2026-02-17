@@ -160,6 +160,37 @@ function AppContent() {
         <GameScreen />
       )}
 
+      {state.phase === 'game-over' && state.character && (
+        <div className="game-over-screen">
+          <div className="game-over-content">
+            <h2 className="game-over-title">Fallen in Battle</h2>
+            <p className="game-over-name">{state.character.name}</p>
+            <p className="game-over-details">
+              Level {state.character.level} {state.character.race} {state.character.class}
+            </p>
+            <p className="game-over-epitaph">
+              The darkness closes in. Your story ends here — but legends never truly die.
+            </p>
+            <div className="game-over-stats">
+              <span>Quests: {state.questLog.length}</span>
+              <span>NPCs Met: {state.npcsMetNames.length}</span>
+              <span>Gold: {state.character.gold}</span>
+            </div>
+            <div className="game-over-actions">
+              <button className="btn-primary btn-large" onClick={() => {
+                dispatch({ type: 'NEW_GAME' });
+                dispatch({ type: 'SET_PHASE', phase: 'setup' });
+              }}>
+                Start Anew
+              </button>
+              <button className="btn-secondary btn-large" onClick={() => setShowExport(true)}>
+                Export Final Tale
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modals */}
       {showSettings && <AISettings onClose={() => setShowSettings(false)} />}
       {showSaveLoad && <SaveLoad onClose={() => setShowSaveLoad(false)} />}

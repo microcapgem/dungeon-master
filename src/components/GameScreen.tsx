@@ -8,6 +8,7 @@ import { DiceScene } from './DiceRoller/DiceScene';
 import type { DieType } from '../game/dice';
 import type { DiceResult } from '../game/dice';
 import { DIE_MAX } from '../game/dice';
+import { xpForNextLevel } from '../game/character';
 
 /** Normalize AI dice strings like "1d8", "1d20", "D6" → "d8", "d20", "d6" */
 function normalizeDieType(raw: string | undefined): DieType {
@@ -75,9 +76,25 @@ export function GameScreen() {
               {!state.combat && (
                 <div className="hp-strip-quick-stats">
                   <span>Level {char.level}</span>
-                  <span>{char.xp} XP</span>
+                  <span>{char.xp}/{char.level >= 20 ? 'MAX' : xpForNextLevel(char.level)} XP</span>
                   <span>{char.gold} Gold</span>
                   <span>{char.inventory.length} Items</span>
+                  <span>{state.questLog.length} Quests</span>
+                </div>
+              )}
+              {state.combat && char.hp === 0 && (
+                <div className="death-saves-strip">
+                  <span className="death-save-label">DEATH SAVES:</span>
+                  <span className="death-save-success">
+                    {Array.from({ length: 3 }, (_, i) => (
+                      <span key={i} className={i < state.combat!.deathSaves.successes ? 'save-filled success' : 'save-empty'}>{'\u25CF'}</span>
+                    ))}
+                  </span>
+                  <span className="death-save-failure">
+                    {Array.from({ length: 3 }, (_, i) => (
+                      <span key={i} className={i < state.combat!.deathSaves.failures ? 'save-filled failure' : 'save-empty'}>{'\u25CF'}</span>
+                    ))}
+                  </span>
                 </div>
               )}
             </div>
@@ -95,7 +112,12 @@ export function GameScreen() {
         <div className="character-overlay" onClick={() => setShowSheet(false)}>
           <div className="character-overlay-panel" onClick={(e) => e.stopPropagation()}>
             <button className="overlay-close" onClick={() => setShowSheet(false)}>{'\u2715'}</button>
-            <CharacterSheet character={char} />
+            <CharacterSheet
+              character={char}
+              questLog={state.questLog}
+              location={state.location}
+              npcsMetNames={state.npcsMetNames}
+            />
           </div>
         </div>
       )}

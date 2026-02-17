@@ -1,5 +1,5 @@
 import type { Character } from '../game/character';
-import { getModifierString } from '../game/character';
+import { getModifierString, xpForNextLevel } from '../game/character';
 import type { GameState, CampaignRecord } from '../game/state';
 
 function buildCampaignHistorySection(campaigns: CampaignRecord[]): string {
@@ -27,6 +27,7 @@ export function buildDMSystemPrompt(state: GameState, campaignHistory?: Campaign
   if (!char) return getIntroPrompt();
 
   const historySection = campaignHistory ? buildCampaignHistorySection(campaignHistory) : '';
+  const xpForNext = char.level >= 20 ? 'MAX' : xpForNextLevel(char.level);
 
   const mechanicsRule = showMechanics
     ? `- Mention dice rolls, ability checks, saving throws, AC, and combat mechanics naturally — like a real DM at the table would. "Give me a Dexterity save" or "That's a hit, roll damage" is great.
@@ -47,8 +48,8 @@ ${mechanicsRule}
 
 ## Current Character
 Name: ${char.name}
-Race: ${char.race} | Class: ${char.class} | Level: ${char.level}
-HP: ${char.hp}/${char.maxHp} | AC: ${char.ac}
+Race: ${char.race} | Class: ${char.class} | Level: ${char.level} | XP: ${char.xp}/${xpForNext}
+HP: ${char.hp}/${char.maxHp} | AC: ${char.ac}${char.hp === 0 ? ' | STATUS: DYING (death saves active)' : ''}
 STR: ${char.abilities.STR} (${getModifierString(char.abilities.STR)}) | DEX: ${char.abilities.DEX} (${getModifierString(char.abilities.DEX)}) | CON: ${char.abilities.CON} (${getModifierString(char.abilities.CON)})
 INT: ${char.abilities.INT} (${getModifierString(char.abilities.INT)}) | WIS: ${char.abilities.WIS} (${getModifierString(char.abilities.WIS)}) | CHA: ${char.abilities.CHA} (${getModifierString(char.abilities.CHA)})
 Inventory: ${char.inventory.join(', ')}
@@ -60,7 +61,7 @@ Location: ${state.location}
 NPCs Met: ${state.npcsMetNames.length > 0 ? state.npcsMetNames.join(', ') : 'None yet'}
 Quests: ${state.questLog.length > 0 ? state.questLog.join('; ') : 'None yet'}
 ${state.combat ? `COMBAT ACTIVE - Round ${state.combat.round}, ${state.combat.playerTurn ? "Player's turn" : "Enemy's turn"}
-Enemies: ${state.combat.enemies.map(e => `${e.name} (HP: ${e.hp}/${e.maxHp}, AC: ${e.ac})`).join(', ')}` : ''}
+Enemies: ${state.combat.enemies.map(e => `${e.name} (HP: ${e.hp}/${e.maxHp}, AC: ${e.ac})`).join(', ')}${char.hp === 0 ? `\nDEATH SAVES: ${state.combat.deathSaves.successes} successes, ${state.combat.deathSaves.failures} failures (3 successes = stabilize, 3 failures = death)` : ''}` : ''}
 ${historySection}
 ## Response Format
 You MUST respond with valid JSON in this exact format:
@@ -102,7 +103,8 @@ For game state changes, set gameUpdates:
     "quest": null,
     "startCombat": null,
     "endCombat": false,
-    "enemyDamage": null
+    "enemyDamage": null,
+    "deathSave": null
   }
 }
 
@@ -112,6 +114,9 @@ startCombat format (when starting combat):
 enemyDamage format (when player hits an enemy):
 "enemyDamage": {"index": 0, "amount": 8}
 
+deathSave format (when player is at 0 HP and rolls a death save):
+"deathSave": true (success) or "deathSave": false (failure)
+
 ## Rules
 - Only include fields in gameUpdates that are relevant. Omit or null the rest.
 - For ability checks, the DC should be 10-15 for easy/medium, 15-20 for hard.
@@ -120,6 +125,8 @@ enemyDamage format (when player hits an enemy):
 - After receiving a roll result, narrate the outcome dramatically.
 - Keep combat moving — don't let it drag. 3-5 rounds is ideal.
 - Award XP after combat (25-100 XP for small encounters, 100-300 for tough ones).
+- When the character drops to 0 HP in combat, they are DYING. Request death saving throws (DC 10, no modifier, d20). Narrate the tension — flickering vision, fading sounds, the struggle to hold on.
+- A natural 20 on a death save = the character regains 1 HP and is back in the fight. A natural 1 = two failures.
 - Sprinkle in treasure, lore, and NPC interactions between combats.
 - NEVER break character. You are the DM, not an AI assistant.
 

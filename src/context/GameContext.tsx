@@ -99,6 +99,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   }, [state]);
 
+  // Track level for level-up notifications
+  const prevLevelRef = useRef(state.character?.level ?? 1);
+
+  // Detect level-ups and notify
+  useEffect(() => {
+    const currentLevel = state.character?.level ?? 1;
+    if (currentLevel > prevLevelRef.current && state.character) {
+      const entry: StoryEntry = {
+        id: crypto.randomUUID(),
+        type: 'system',
+        text: `LEVEL UP! ${state.character.name} is now level ${currentLevel}! Max HP increased to ${state.character.maxHp}.`,
+        timestamp: Date.now(),
+      };
+      dispatch({ type: 'ADD_STORY', entry });
+    }
+    prevLevelRef.current = currentLevel;
+  }, [state.character?.level, state.character?.name, state.character?.maxHp, dispatch]);
+
   // Track whether we've triggered the returning hero intro
   const returningIntroSent = useRef(false);
 
@@ -138,6 +156,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       if (u.startCombat) dispatch({ type: 'START_COMBAT', enemies: u.startCombat });
       if (u.endCombat) dispatch({ type: 'END_COMBAT' });
       if (u.enemyDamage) dispatch({ type: 'ENEMY_TAKE_DAMAGE', index: u.enemyDamage.index, amount: u.enemyDamage.amount });
+      if (u.deathSave !== undefined) dispatch({ type: 'DEATH_SAVE', success: u.deathSave });
     }
 
     return {

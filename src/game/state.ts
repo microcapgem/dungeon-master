@@ -1,4 +1,5 @@
 import type { Character } from './character';
+import { calculateHP, shouldLevelUp } from './character';
 import type { DiceResult } from './dice';
 
 export type GamePhase = 'setup' | 'character-select' | 'character-create' | 'playing' | 'combat' | 'game-over';
@@ -64,6 +65,7 @@ export type GameAction =
   | { type: 'TAKE_DAMAGE'; amount: number }
   | { type: 'HEAL'; amount: number }
   | { type: 'GAIN_XP'; amount: number }
+  | { type: 'LEVEL_UP' }
   | { type: 'ADD_ITEM'; item: string }
   | { type: 'REMOVE_ITEM'; item: string }
   | { type: 'ADD_GOLD'; amount: number }
@@ -108,11 +110,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'TAKE_DAMAGE': {
       if (!state.character) return state;
       const newHp = Math.max(0, state.character.hp - action.amount);
-      return {
+      const newState = {
         ...state,
         character: { ...state.character, hp: newHp },
-        phase: newHp === 0 && state.phase === 'combat' ? 'combat' : state.phase,
       };
+      // If HP drops to 0, character is dying — reset death saves
+      if (newHp === 0 && state.combat) {
+        newState.combat = {
+          ...state.combat,
+          deathSaves: { successes: 0, failures: 0 },
+        };
+      }
+      return newState;
     }
 
     case 'HEAL': {
@@ -123,7 +132,31 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case 'GAIN_XP': {
       if (!state.character) return state;
-      return { ...state, character: { ...state.character, xp: state.character.xp + action.amount } };
+      const newXp = state.character.xp + action.amount;
+      const char = { ...state.character, xp: newXp };
+      // Auto level-up if XP threshold reached
+      if (shouldLevelUp(newXp, char.level)) {
+        const newLevel = char.level + 1;
+        const newMaxHp = calculateHP(char.class, char.abilities.CON, newLevel);
+        const hpGain = newMaxHp - char.maxHp;
+        char.level = newLevel;
+        char.maxHp = newMaxHp;
+        char.hp = Math.min(char.hp + hpGain, newMaxHp); // heal by the HP gained
+      }
+      return { ...state, character: char };
+    }
+
+    case 'LEVEL_UP': {
+      if (!state.character) return state;
+      const c = { ...state.character };
+      const newLevel = c.level + 1;
+      if (newLevel > 20) return state;
+      const newMaxHp = calculateHP(c.class, c.abilities.CON, newLevel);
+      const hpGain = newMaxHp - c.maxHp;
+      c.level = newLevel;
+      c.maxHp = newMaxHp;
+      c.hp = Math.min(c.hp + hpGain, newMaxHp);
+      return { ...state, character: c };
     }
 
     case 'ADD_ITEM': {
@@ -176,6 +209,25 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const ds = { ...state.combat.deathSaves };
       if (action.success) ds.successes++;
       else ds.failures++;
+
+      // 3 failures = death → game over
+      if (ds.failures >= 3) {
+        return {
+          ...state,
+          phase: 'game-over',
+          combat: { ...state.combat, deathSaves: ds },
+        };
+      }
+
+      // 3 successes = stabilize at 1 HP
+      if (ds.successes >= 3) {
+        return {
+          ...state,
+          character: state.character ? { ...state.character, hp: 1 } : state.character,
+          combat: { ...state.combat, deathSaves: { successes: 0, failures: 0 } },
+        };
+      }
+
       return { ...state, combat: { ...state.combat, deathSaves: ds } };
     }
 
