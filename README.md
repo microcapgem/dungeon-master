@@ -1,73 +1,56 @@
-# React + TypeScript + Vite
+# AI Dungeon Master
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A browser-based RPG powered by AI. Create a character, and an AI Dungeon Master will guide you through a dynamic, open-ended adventure with D&D-inspired rules, 3D dice rolling, combat, and voice narration.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **AI Dungeon Master** — Powered by Claude or OpenAI. The DM generates narrative, tracks game state, requests dice rolls, and manages combat encounters via streaming responses.
+- **Character Creation** — Three modes: pick from 6 pre-built characters (Fighter, Wizard, Rogue, Cleric, Ranger, Barbarian), generate a random character with 4d6-drop-lowest ability scores, or build one from scratch with custom race, class, abilities, and backstory.
+- **3D Dice Roller** — Interactive dice rolling with React Three Fiber and Cannon.js physics. The DM requests rolls when actions require skill checks or attacks.
+- **Combat System** — Turn-based combat with enemy HP tracking, damage, and initiative. The DM manages encounters and transitions in/out of combat mode.
+- **Voice Narration** — Toggle text-to-speech so the DM reads the story aloud using the Web Speech API.
+- **Save/Load** — Auto-saves progress to localStorage. Manual save slots let you manage multiple adventures.
+- **Quest Export** — Export your adventure log as a formatted text file.
+- **Suggested Actions** — The DM suggests contextual actions after each response, or type your own.
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19 + TypeScript
+- Vite 7
+- React Three Fiber + Drei + Cannon (3D dice)
+- Claude API / OpenAI API (streaming)
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+```bash
+# Install dependencies
+npm install
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Start dev server
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open [http://localhost:5173](http://localhost:5173), go to **Settings**, and enter your Claude or OpenAI API key. Then create a character and start your adventure.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Races
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Human, Elf, Dwarf, Halfling, Half-Orc, Tiefling
+
+## Classes
+
+Fighter, Wizard, Rogue, Cleric, Ranger, Barbarian
+
+## Project Structure
+
 ```
+src/
+├── ai/           # AI provider interface, Claude/OpenAI implementations, prompt templates
+├── components/   # UI — GameScreen, CharacterCreation, DiceRoller, CombatTracker, etc.
+├── context/      # GameContext — central state, AI communication, roll handling
+├── game/         # Character types, dice logic, D&D rules, game state/reducer
+└── utils/        # LocalStorage persistence, voice/TTS helpers
+```
+
+## License
+
+MIT
