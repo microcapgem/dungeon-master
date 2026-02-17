@@ -3,7 +3,6 @@ import { useGame } from '../context/GameContext';
 import { createSave } from '../utils/storage';
 import { StoryLog } from './Narrative/StoryLog';
 import { ActionInput } from './Narrative/ActionInput';
-import { CharacterSheet } from './CharacterCreation/CharacterSheet';
 import { CombatTracker } from './CombatTracker';
 import { DiceScene } from './DiceRoller/DiceScene';
 import type { DieType } from '../game/dice';
@@ -26,7 +25,6 @@ export function GameScreen() {
     pendingRoll, suggestedActions,
     undoLastTurn, canUndo, lastAutoSave,
   } = useGame();
-  const [showSheet, setShowSheet] = useState(false);
   const [rolling, setRolling] = useState(false);
   const [hpExpanded, setHpExpanded] = useState(false);
   const [quickSaveFlash, setQuickSaveFlash] = useState('');
@@ -84,8 +82,8 @@ export function GameScreen() {
     <div className="game-screen">
       {/* Fixed HP strip at top — always visible, click to expand */}
       {char && (
-        <div className="hp-strip" onClick={() => setHpExpanded(!hpExpanded)}>
-          <div className="hp-strip-bar">
+        <div className="hp-strip">
+          <div className="hp-strip-bar" onClick={() => setHpExpanded(!hpExpanded)}>
             <div className="hp-strip-fill" style={{ width: `${hpPercent}%`, backgroundColor: hpColor }} />
             <span className="hp-strip-text">
               {char.name} &mdash; {char.hp}/{char.maxHp} HP &nbsp; AC {char.ac}
@@ -148,26 +146,6 @@ export function GameScreen() {
         >
           {'\u21A9'}
         </button>
-      )}
-
-      {/* Fixed Character button — opens full sheet overlay */}
-      <button className="character-fab" onClick={() => setShowSheet(!showSheet)}>
-        {showSheet ? '\u2715' : '\u{1F4DC}'}
-      </button>
-
-      {/* Character sheet overlay */}
-      {showSheet && char && (
-        <div className="character-overlay" onClick={() => setShowSheet(false)}>
-          <div className="character-overlay-panel" onClick={(e) => e.stopPropagation()}>
-            <button className="overlay-close" onClick={() => setShowSheet(false)}>{'\u2715'}</button>
-            <CharacterSheet
-              character={char}
-              questLog={state.questLog}
-              location={state.location}
-              npcsMetNames={state.npcsMetNames}
-            />
-          </div>
-        </div>
       )}
 
       {/* Main content */}

@@ -5,6 +5,7 @@ import { QuickPresets } from './components/CharacterCreation/QuickPresets';
 import { RandomCharacter } from './components/CharacterCreation/RandomCharacter';
 import { CustomCreator } from './components/CharacterCreation/CustomCreator';
 import { AISettings } from './components/Settings/AISettings';
+import { CharacterSheet } from './components/CharacterCreation/CharacterSheet';
 import { SaveLoad } from './components/SaveLoad';
 import { QuestExport } from './components/QuestExport';
 import { CharacterHistory } from './components/CharacterHistory';
@@ -18,6 +19,7 @@ function AppContent() {
   const [showSettings, setShowSettings] = useState(false);
   const [showSaveLoad, setShowSaveLoad] = useState(false);
   const [showExport, setShowExport] = useState(false);
+  const [showSheet, setShowSheet] = useState(false);
   const [voiceOn, setVoiceOn] = useState(isVoiceEnabled());
 
   const isConfigured = settings.providerType === 'claude'
@@ -84,6 +86,11 @@ function AppContent() {
               }
             }}>
               New
+            </button>
+          )}
+          {isInGame && (
+            <button className={`nav-btn sheet-btn ${showSheet ? 'active' : ''}`} onClick={() => setShowSheet(!showSheet)}>
+              {'\u{1F4DC}'} Character
             </button>
           )}
           <button className="nav-btn settings-btn" onClick={() => setShowSettings(true)}>
@@ -190,6 +197,20 @@ function AppContent() {
           </div>
         </div>
       )}
+
+      {/* Character sidebar */}
+      <div className={`character-sidebar ${showSheet ? 'open' : ''}`}>
+        <button className="sidebar-close" onClick={() => setShowSheet(false)}>{'\u2715'}</button>
+        {state.character && (
+          <CharacterSheet
+            character={state.character}
+            questLog={state.questLog}
+            location={state.location}
+            npcsMetNames={state.npcsMetNames}
+          />
+        )}
+      </div>
+      {showSheet && <div className="sidebar-backdrop" onClick={() => setShowSheet(false)} />}
 
       {/* Modals */}
       {showSettings && <AISettings onClose={() => setShowSettings(false)} />}
