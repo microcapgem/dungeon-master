@@ -1,4 +1,4 @@
-# AI Dungeon Master
+# Dungeon Master
 
 A browser-based RPG powered by AI. Create a character, and an AI Dungeon Master will guide you through a dynamic, open-ended adventure with D&D-inspired rules, 3D dice rolling, combat, and voice narration.
 
