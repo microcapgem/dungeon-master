@@ -14,6 +14,7 @@
   --accent-blue: #3498db;
   --accent-orange: #e67e22;
   --border: #2a2a4a;
+  --border-subtle: #222244;
   --font-display: 'Cinzel', serif;
   --font-body: 'Crimson Text', serif;
   --font-mono: 'JetBrains Mono', monospace;
@@ -75,24 +76,32 @@ body {
 
 .title-icon { font-size: 1.6rem; }
 
-.header-nav { display: flex; gap: 8px; }
+.header-nav {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
 
 .nav-btn {
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
-  padding: 6px 16px;
-  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  padding: 6px 14px;
+  border-radius: 8px;
   cursor: pointer;
-  font-family: var(--font-body);
-  font-size: 0.9rem;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .nav-btn:hover {
-  background: var(--bg-card-hover);
+  background: var(--bg-tertiary);
   color: var(--text-primary);
-  border-color: var(--accent-purple);
+  border-color: var(--border);
 }
 
 /* ============ SETUP SCREEN ============ */
@@ -885,18 +894,25 @@ body {
 .hp-strip-quick-stats {
   display: flex;
   justify-content: center;
-  gap: 32px;
+  gap: 12px;
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
   padding: 4px 0;
+  flex-wrap: wrap;
 }
 
 .hp-strip-quick-stats span {
-  padding: 4px 14px;
-  background: var(--bg-tertiary);
-  border-radius: 6px;
-  border: 1px solid var(--border);
+  padding: 5px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 20px;
+  border: 1px solid var(--border-subtle);
+  transition: all 0.2s;
+}
+
+.hp-strip-quick-stats span:hover {
+  border-color: var(--accent-purple);
+  color: var(--text-primary);
 }
 
 /* ============ CHARACTER FAB + OVERLAY ============ */
@@ -905,26 +921,25 @@ body {
   position: fixed;
   bottom: 100px;
   right: 20px;
-  width: 54px;
-  height: 54px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--accent-gold), #a07828);
   color: #1a0a2e;
-  border: 2px solid rgba(255, 215, 0, 0.3);
-  font-size: 1.5rem;
+  border: none;
+  font-size: 1.3rem;
   cursor: pointer;
   z-index: 200;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px rgba(212, 167, 74, 0.3), 0 0 40px rgba(212, 167, 74, 0.1);
+  box-shadow: 0 4px 20px rgba(212, 167, 74, 0.3);
   transition: all 0.25s ease;
 }
 
 .character-fab:hover {
-  transform: scale(1.15) rotate(5deg);
-  box-shadow: 0 6px 30px rgba(212, 167, 74, 0.5), 0 0 60px rgba(212, 167, 74, 0.2);
-  border-color: rgba(255, 215, 0, 0.6);
+  transform: scale(1.1);
+  box-shadow: 0 6px 30px rgba(212, 167, 74, 0.5);
 }
 
 .character-fab:active {
@@ -982,13 +997,8 @@ body {
 }
 
 /* Voice button */
-.voice-btn {
-  transition: all 0.2s;
-}
-
 .voice-btn.voice-on {
-  border-color: var(--accent-gold);
-  color: var(--accent-gold);
+  color: var(--accent-gold) !important;
 }
 
 /* ============ STORY LOG ============ */
@@ -1006,9 +1016,14 @@ body {
   max-width: 800px;
   width: 100%;
   margin: 0 auto;
-  padding: 16px 20px;
+  padding: 18px 22px;
   border-radius: 12px;
-  animation: fadeIn 0.3s ease;
+  animation: storyFadeIn 0.4s ease;
+}
+
+@keyframes storyFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeIn {
@@ -1056,7 +1071,19 @@ body {
 .story-player .entry-label { color: var(--accent-purple); }
 .story-roll .entry-label { color: var(--accent-blue); }
 
-.entry-text { line-height: 1.7; }
+.entry-text {
+  line-height: 1.8;
+  white-space: pre-line;
+}
+
+.story-dm .entry-text {
+  font-size: 1.05rem;
+}
+
+.story-player .entry-text {
+  font-size: 0.95rem;
+  font-style: italic;
+}
 
 .streaming .entry-text {
   border-right: 2px solid var(--accent-gold);
@@ -1081,9 +1108,8 @@ body {
 
 .action-input-container {
   padding: 16px 24px 20px;
-  background: linear-gradient(180deg, var(--bg-secondary), var(--bg-primary));
-  border-top: 1px solid var(--border);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(180deg, transparent, var(--bg-secondary) 20%, var(--bg-primary));
+  border-top: 1px solid var(--border-subtle);
 }
 
 .suggested-actions {
@@ -1097,23 +1123,32 @@ body {
 }
 
 .suggested-action-btn {
-  background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-card));
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
-  padding: 8px 18px;
-  border-radius: 20px;
+  background: var(--bg-card);
+  color: var(--accent-gold);
+  border: 1px solid rgba(212, 167, 74, 0.2);
+  padding: 10px 20px;
+  border-radius: 24px;
   cursor: pointer;
   font-family: var(--font-body);
   font-size: 0.9rem;
   transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.suggested-action-btn::before {
+  content: '\u2794';
+  margin-right: 6px;
+  font-size: 0.7rem;
+  opacity: 0.5;
 }
 
 .suggested-action-btn:hover {
-  border-color: var(--accent-purple);
+  border-color: var(--accent-gold);
   color: var(--text-primary);
-  background: linear-gradient(135deg, var(--bg-card-hover), rgba(155, 109, 255, 0.1));
-  transform: translateY(-1px);
-  box-shadow: 0 3px 12px rgba(155, 109, 255, 0.2);
+  background: rgba(212, 167, 74, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(212, 167, 74, 0.15);
 }
 
 .suggested-action-btn:active {
@@ -1808,16 +1843,16 @@ body {
   animation: fadeIn 0.2s ease;
 }
 
-.save-btn {
-  border-color: var(--accent-gold) !important;
+.save-btn:hover {
   color: var(--accent-gold) !important;
+  border-color: rgba(212, 167, 74, 0.3) !important;
 }
 
 /* ============ QUEST EXPORT ============ */
 
-.export-btn {
-  border-color: var(--accent-purple) !important;
+.export-btn:hover {
   color: var(--accent-purple) !important;
+  border-color: rgba(155, 109, 255, 0.3) !important;
 }
 
 .export-panel {
@@ -2090,13 +2125,13 @@ body {
 }
 
 /* End Campaign button */
-.end-campaign-btn {
-  border-color: var(--accent-green) !important;
+.end-campaign-btn:hover {
   color: var(--accent-green) !important;
+  border-color: rgba(46, 204, 113, 0.3) !important;
 }
 
 .end-campaign-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
@@ -2526,8 +2561,6 @@ body {
   /* Header */
   .app-header {
     padding: 8px 12px;
-    flex-wrap: wrap;
-    gap: 8px;
   }
 
   .app-title {
@@ -2536,64 +2569,66 @@ body {
 
   .title-icon { font-size: 1.2rem; }
 
-  .header-nav {
-    gap: 4px;
-    flex-wrap: wrap;
-  }
-
   .nav-btn {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     padding: 6px 10px;
   }
 
   /* Setup screen */
   .hero-title { font-size: 1.8rem; }
   .hero-subtitle { font-size: 0.9rem; padding: 0 8px; }
-  .setup-screen { padding: 16px 8px; }
+  .setup-screen { padding: 24px 12px; }
   .feature-cards { flex-direction: column; align-items: center; }
   .feature-card { min-width: auto; width: 100%; }
   .start-options { flex-direction: column; gap: 8px; }
   .start-options .btn-large { margin-left: 0 !important; }
 
   /* Character select */
-  .character-select-screen { padding: 16px 8px; }
+  .character-select-screen { padding: 16px 12px; }
   .presets-grid { grid-template-columns: 1fr; }
   .create-mode-tabs { gap: 4px; }
   .create-mode-tab { font-size: 0.8rem; padding: 8px 12px; }
 
   /* Roster */
-  .roster-grid { grid-template-columns: 1fr; }
   .roster-card-header { padding: 12px; }
 
   /* Game screen */
   .game-screen { padding: 0; }
-  .game-main { padding: 0 4px; }
+  .game-main { padding: 0; }
 
   /* HP strip */
-  .hp-strip { margin: 0; border-radius: 0; }
-  .hp-strip-text { font-size: 0.75rem; }
-  .hp-strip-quick-stats { gap: 8px; font-size: 0.7rem; flex-wrap: wrap; }
-  .hp-strip-quick-stats span { padding: 3px 6px; font-size: 0.7rem; }
+  .hp-strip { border-radius: 0; }
+  .hp-strip-text { font-size: 0.7rem; }
+  .hp-strip-bar { height: 28px; }
+  .hp-strip-quick-stats { gap: 6px; padding: 4px 8px; }
+  .hp-strip-quick-stats span { padding: 4px 10px; font-size: 0.7rem; }
 
   /* Story log */
-  .story-log { padding: 8px 4px; }
+  .story-log { padding: 12px 8px; gap: 12px; }
+  .story-entry { padding: 14px 16px; border-radius: 10px; }
+  .story-dm .entry-text { font-size: 0.95rem; }
 
   /* Action input */
-  .action-input-container { padding: 8px; }
-  .suggested-actions { gap: 4px; }
-  .suggested-action-btn { font-size: 0.75rem; padding: 6px 10px; }
-  .input-row { gap: 6px; }
-  .action-textarea { font-size: 0.9rem; }
+  .action-input-container { padding: 10px 12px 14px; }
+  .suggested-actions { gap: 6px; }
+  .suggested-action-btn { font-size: 0.8rem; padding: 8px 14px; }
+  .suggested-action-btn::before { display: none; }
+  .input-row { gap: 8px; }
+  .action-textarea { font-size: 0.9rem; padding: 10px 12px; }
+  .send-btn { padding: 10px 18px; font-size: 0.8rem; }
 
   /* Dice */
-  .dice-section { padding: 8px; }
+  .dice-section { padding: 12px 8px; }
+  .roll-prompt { gap: 8px; flex-wrap: wrap; }
+  .roll-reason { font-size: 0.95rem; }
 
   /* Character sheet overlay */
   .character-overlay-panel { width: 95%; max-width: none; padding: 16px; }
-  .character-fab { bottom: 80px; right: 12px; width: 40px; height: 40px; font-size: 1.1rem; }
+  .character-fab { bottom: 80px; right: 12px; width: 42px; height: 42px; font-size: 1.1rem; }
 
   /* Undo */
-  .undo-fab { bottom: 80px; left: 12px; width: 38px; height: 38px; font-size: 1.1rem; }
+  .undo-fab { bottom: 80px; left: 12px; width: 38px; height: 38px; font-size: 1rem; }
+  .auto-save-indicator { display: none; }
 
   /* Combat */
   .combat-participants { flex-direction: column; }
@@ -2604,7 +2639,7 @@ body {
   .settings-panel, .save-load-panel, .export-panel {
     width: 95%;
     max-width: none;
-    max-height: 85vh;
+    max-height: 90vh;
     padding: 16px;
   }
 
@@ -2616,12 +2651,21 @@ body {
   .game-over-title { font-size: 1.8rem; }
   .game-over-actions { flex-direction: column; }
   .game-over-stats { gap: 12px; font-size: 0.8rem; }
+
+  /* Character sheet mobile */
+  .cs-abilities { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .ability-block { padding: 6px; }
+  .ability-score { font-size: 1rem; }
+  .cs-header-full h2 { font-size: 1.1rem; }
 }
 
 /* Small phones */
 @media (max-width: 400px) {
   .app-title { font-size: 0.95rem; }
-  .nav-btn { font-size: 0.65rem; padding: 5px 8px; }
+  .title-icon { display: none; }
+  .nav-btn { font-size: 0.6rem; padding: 5px 8px; }
   .hero-title { font-size: 1.5rem; }
-  .suggested-action-btn { font-size: 0.7rem; }
+  .hero-section { margin-bottom: 32px; }
+  .suggested-action-btn { font-size: 0.75rem; padding: 7px 12px; }
+  .story-entry { padding: 12px 14px; }
 }

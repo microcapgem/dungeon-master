@@ -48,17 +48,17 @@ function AppContent() {
               onClick={toggleVoice}
               title={voiceOn ? 'Mute DM voice' : 'Enable DM voice'}
             >
-              {voiceOn ? '\u{1F50A} Voice' : '\u{1F507} Muted'}
+              {voiceOn ? '\u{1F50A}' : '\u{1F507}'}
             </button>
           )}
           {(isInGame || hasSaves) && (
             <button className="nav-btn save-btn" onClick={() => setShowSaveLoad(true)}>
-              Save/Load
+              Saves
             </button>
           )}
           {isInGame && (
             <button className="nav-btn export-btn" onClick={() => setShowExport(true)}>
-              Export Quest
+              Export
             </button>
           )}
           {isInGame && (
@@ -83,11 +83,11 @@ function AppContent() {
                 dispatch({ type: 'SET_PHASE', phase: 'setup' });
               }
             }}>
-              New Game
+              New
             </button>
           )}
           <button className="nav-btn settings-btn" onClick={() => setShowSettings(true)}>
-            Settings
+            {'\u2699'}
           </button>
         </nav>
       </header>
