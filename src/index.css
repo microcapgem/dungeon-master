@@ -1136,13 +1136,6 @@ body {
   overflow: hidden;
 }
 
-.suggested-action-btn::before {
-  content: '\u2794';
-  margin-right: 6px;
-  font-size: 0.7rem;
-  opacity: 0.5;
-}
-
 .suggested-action-btn:hover {
   border-color: var(--accent-gold);
   color: var(--text-primary);
@@ -2612,7 +2605,6 @@ body {
   .action-input-container { padding: 10px 12px 14px; }
   .suggested-actions { gap: 6px; }
   .suggested-action-btn { font-size: 0.8rem; padding: 8px 14px; }
-  .suggested-action-btn::before { display: none; }
   .input-row { gap: 8px; }
   .action-textarea { font-size: 0.9rem; padding: 10px 12px; }
   .send-btn { padding: 10px 18px; font-size: 0.8rem; }
